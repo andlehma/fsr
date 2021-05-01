@@ -1,4 +1,35 @@
 #include <inttypes.h>
+#include <FastLED.h>
+#define LED_TYPE    WS2811
+#define COLOR_ORDER GRB
+#define NUM_LEDS 48
+#define NUM_LEDS_PER_STEP 12
+#define DATA_PIN 5
+CRGB leds[NUM_LEDS];
+#define RIGHT_LED_INDEX 0
+#define DOWN_LED_INDEX RIGHT_LED_INDEX + NUM_LEDS_PER_STEP
+#define LEFT_LED_INDEX DOWN_LED_INDEX + NUM_LEDS_PER_STEP
+#define UP_LED_INDEX LEFT_LED_INDEX + NUM_LEDS_PER_STEP
+
+void lightsOut() {
+  for(int i=0; i < NUM_LEDS; i++) {
+    leds[i] = CRGB::Black;
+  }
+  FastLED.show();
+}
+
+void allWhite(int index) {
+  for(int i=index; i < NUM_LEDS_PER_STEP; i++) {
+    leds[i] = CRGB::White;
+  }
+  FastLED.show();
+}
+
+void carnival(int index) {
+  fadeToBlackBy(index, NUM_LEDS_PER_STEP, 20);
+  int pos = beatsin16( 13, 0, NUM_LEDS_PER_STEP-1 );
+  leds[pos] += CHSV( CRGB::Yellow, 255, 192);
+}
 
 #if !defined(__AVR_ATmega32U4__) && !defined(__AVR_ATmega328P__) && \
     !defined(__AVR_ATmega1280__) && !defined(__AVR_ATmega2560__)
@@ -54,7 +85,7 @@ uint8_t curButtonNum = 1;
 // some existing sensor pins so if you see some weird behavior it might be
 // because of this. Uncomment the following line to enable the feature.
 
-// #define ENABLE_LIGHTS
+#define ENABLE_LIGHTS
 
 // We don't want to use digital pins 0 and 1 as they're needed for Serial
 // communication so we start curLightPin from 2.
@@ -531,6 +562,8 @@ void setup() {
     // Button numbers should start with 1.
     kSensors[i].Init(i + 1);
   }
+  FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  carnival(0);
 }
 
 void loop() {
